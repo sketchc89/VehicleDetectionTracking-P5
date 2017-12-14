@@ -1,0 +1,61 @@
+Timer unit: 1e-06 s
+
+Total time: 4.0743 s
+File: <ipython-input-27-7c368e530c89>
+Function: detect_cars_opencv at line 2
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+     2                                           def detect_cars_opencv(img, classifier, X_scaler, hog_descriptor, scale=1.0,
+     3                                                                  overlap=1.0, show=False):
+     4                                               """
+     5                                               Function tries to detect cars using sliding windows and then returns a list
+     6                                               of bounding boxes where cars could be.
+     7                                               
+     8                                               :param img: Image to detect cars within
+     9                                               :param classifier: Classifier that determines if a window is a car or not
+    10                                               :param X_scaler: Scaler used to remove mean and scaling of features
+    11                                               :param scale: Amount to scale image to get multiple size boxes
+    12                                               :return bounding_boxes: ndarray of windows where cars detected
+    13                                               """
+    14                                               
+    15         1            2      2.0      0.0      window_size = 64
+    16         1         3473   3473.0      0.1      img = convert_color(img, cspace='YUV')
+    17         1            3      3.0      0.0      if scale != 1.0:
+    18         1         1312   1312.0      0.0          img = cv2.resize(img, (np.int(img.shape[1]*scale), np.int(img.shape[0]*scale)))
+    19         1            4      4.0      0.0      height = img.shape[0]
+    20         1            1      1.0      0.0      width = img.shape[1]
+    21         1            1      1.0      0.0      bounding_boxes=[]
+    22         1            7      7.0      0.0      step = max(1,int(window_size*overlap))
+    23         1            1      1.0      0.0      count = 0
+    24        11           13      1.2      0.0      for y in range(0, height - window_size - 1, step):
+    25       200          273      1.4      0.0          for x in range(0, width - window_size - 1, step):
+    26       190          444      2.3      0.0              features = []
+    27       190          233      1.2      0.0              count += 1
+    28       190          829      4.4      0.0              pix_window = img[y:y + window_size, x:x + window_size]
+    29       190        54579    287.3      1.3              hist_feat = color_hist(pix_window, channel=0)
+    30       190          280      1.5      0.0              features.append(hist_feat)
+    31       190        11101     58.4      0.3              spatial_feat = bin_spatial(pix_window)
+    32       190          211      1.1      0.0              features.append(spatial_feat)
+    33       190        62684    329.9      1.5              hog_feat = get_hog_opencv(pix_window, hog_descriptor).squeeze()
+    34       190          231      1.2      0.0              features.append(hog_feat)
+    35       190         4087     21.5      0.1              features = np.hstack(features).reshape(1,-1)
+    36       190        21332    112.3      0.5              scaled_features = X_scaler.transform(features)
+    37       190      3912676  20593.0     96.0              if classifier.predict(scaled_features.reshape(1,-1)) == 1:
+    38         1            6      6.0      0.0                  bounding_box = [int(y/scale), int((y + window_size)/scale), 
+    39         1            4      4.0      0.0                                  int(x/scale), int((x + window_size)//scale)]
+    40         1            2      2.0      0.0                  bounding_boxes.append(bounding_box)
+    41         1            1      1.0      0.0                  if show:
+    42                                                               plt.imshow(pix_window)
+    43                                                               plt.show()
+    44       190          496      2.6      0.0              if count % 50 == 1 and show:
+    45                                                           cv2.rectangle(img, (x, y), (x + window_size, y + window_size), (255,0,255), 6)
+    46                                                           print(x, width - window_size - 1, step)
+    47                                                           print(hist_feat.shape, spatial_feat.shape, hog_feat.shape)
+    48         1            1      1.0      0.0      if show:
+    49                                                   img = convert_color(img, cspace='YUV')
+    50                                                   plt.imshow(img)
+    51                                                   plt.show()
+    52                                                   print('Searched {} windows'.format(count))
+    53                                                   print('Found {} boxes'.format(len(bounding_boxes)))
+    54         1           10     10.0      0.0      return np.asarray(bounding_boxes)
