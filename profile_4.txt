@@ -1,0 +1,62 @@
+Total time: 0.927127 s
+File: <ipython-input-36-b28d1f80acae>
+Function: detect_cars at line 2
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+     2                                           def detect_cars(img, classifier, X_scaler, scale=1.0, pix_per_cell=8, cells_per_block=2,
+     3                                                           overlap=0.75, orient=9):
+     4                                               """
+     5                                               Function tries to detect cars using sliding windows and then returns a list
+     6                                               of bounding boxes where cars could be.
+     7                                               
+     8                                               :param img: Image to detect cars within
+     9                                               :param classifier: Classifier that determines if a window is a car or not
+    10                                               :param X_scaler: Scaler used to remove mean and scaling of features
+    11                                               :param scale: Amount to scale image to get multiple size boxes
+    12                                               :return bounding_boxes: ndarray of windows where cars detected
+    13                                               """
+    14                                               
+    15         1         2151   2151.0      0.2      img = convert_color(img, cspace='YUV')
+    16         1            5      5.0      0.0      if scale != 1.0:
+    17         1         1747   1747.0      0.2          img = cv2.resize(img, (np.int(img.shape[1]*scale), np.int(img.shape[0]*scale)))
+    18         1            3      3.0      0.0      window_size=64
+    19         1            4      4.0      0.0      blocks_per_window = window_size // (cells_per_block*pix_per_cell)
+    20         1            3      3.0      0.0      windows = generate_windows(img, blocks_per_window, cells_per_block, pix_per_cell, 
+    21         1         2676   2676.0      0.3                                 overlap)
+    22         1            7      7.0      0.0      hog_0 = hog(img[:,:,0], orientations=orient, 
+    23         1            2      2.0      0.0                      pixels_per_cell=(pix_per_cell, pix_per_cell), 
+    24         1            1      1.0      0.0                      cells_per_block=(cells_per_block, cells_per_block),
+    25         1       215118 215118.0     23.2                      feature_vector=False, block_norm='L2-Hys')
+    26         1            2      2.0      0.0      hog_1 = hog(img[:,:,1], orientations=orient, 
+    27         1            1      1.0      0.0                      pixels_per_cell=(pix_per_cell, pix_per_cell), 
+    28         1            1      1.0      0.0                      cells_per_block=(cells_per_block, cells_per_block),
+    29         1       173881 173881.0     18.8                      feature_vector=False, block_norm='L2-Hys')
+    30         1            2      2.0      0.0      hog_2 = hog(img[:,:,2], orientations=orient, 
+    31         1            1      1.0      0.0                  pixels_per_cell=(pix_per_cell, pix_per_cell), 
+    32         1            1      1.0      0.0                  cells_per_block=(cells_per_block, cells_per_block),
+    33         1       170998 170998.0     18.4                  feature_vector=False, block_norm='L2-Hys')
+    34         1            2      2.0      0.0      bounding_boxes=[]
+    35         1          130    130.0      0.0      print('Searching {} windows'.format(len(windows)))
+    36       451          798      1.8      0.1      for count, window in enumerate(windows):
+    37       450         3477      7.7      0.4          pix_window = img[pix_per_cell*window[0]:pix_per_cell*window[1],
+    38       450         2828      6.3      0.3                           pix_per_cell*window[2]:pix_per_cell*window[3]]
+    39                                           #         if count % 1000 == 1:
+    40                                           #             print(window)
+    41                                           #             plt.imshow(pix_window)
+    42                                           #             plt.show()
+    43                                           #             print(hist_feat.shape, spatial_feat.shape, hog_feat.shape)
+    44       450       247282    549.5     26.7          hist_feat = color_hist(pix_window)
+    45       450        17653     39.2      1.9          spatial_feat = bin_spatial(pix_window)
+    46                                           #         hog_feat = get_hog_features(pix_window, 3, pix_per_cell, cells_per_block, orient)
+    47       450         2739      6.1      0.3          hog_feat_0 = hog_0[window[0]:window[1], window[2]:window[3]].ravel()
+    48       450         1866      4.1      0.2          hog_feat_1 = hog_1[window[0]:window[1], window[2]:window[3]].ravel()
+    49       450         1670      3.7      0.2          hog_feat_2 = hog_2[window[0]:window[1], window[2]:window[3]].ravel()
+    50       450         6585     14.6      0.7          hog_feat = np.hstack((hog_feat_0, hog_feat_1, hog_feat_2))
+    51       450         7394     16.4      0.8          features = np.hstack((hist_feat, spatial_feat, hog_feat)).reshape(1,-1)
+    52       450        37509     83.4      4.0          scaled_features = X_scaler.transform(features)
+    53       450        30442     67.6      3.3          if classifier.predict(scaled_features.reshape(1,-1)) == 1:
+    54        16           99      6.2      0.0              bounding_box = pix_per_cell*window/scale
+    55        16           40      2.5      0.0              bounding_boxes.append(bounding_box.astype(np.uint))
+    56                                           #     img = cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
+    57         1            9      9.0      0.0      return np.asarray(bounding_boxes)
