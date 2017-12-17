@@ -148,9 +148,10 @@ The [linked video](./result_vid.mp4) shows the vehicle pipeline working on [the 
 
 ### Speed
 
-My pipeline ran at 3-4 iterations per second. The tracking pipeline I used was fairly quick on each individual window (the HOG step was not the weak link), but the number of windows I chose to use to get good detection on the edges was probably too high. After writing up the areas to improve, I implemented improving edges and throwing away the color histogram.
+My pipeline ran at 3-4 iterations per second. The tracking pipeline I used was fairly quick on each individual window (the HOG step was not the weak link), but the number of windows I chose to use to get good detection on the edges was probably too high. I used `lprun` for profiling functions in jupyter-notebook. After writing up the areas to improve, I implemented improving edges and throwing away the color histogram.
 
 Future areas to improve:
+
 * Reduce overlap for small windows that take up a large percent of the time. I could reduce overlap if detection at the edges were better.
 * Understand how OpenCV HoG works better. It is possible to run on a full image and parse the windows from the resulting vector. This could be faster than looping in python with vectorization.
 
