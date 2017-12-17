@@ -141,7 +141,7 @@ Below are heatmaps from the test images with a threshold of 5. Top-left image, t
 ![Group Heatmap][heatmap_5]
 
 ### Video 
-# TODO Make sure this link works
+
 The [linked video](./result_vid.mp4) shows the vehicle pipeline working on [the given project_video](./project_video.mp4).
 
 ## Areas for Improvement
